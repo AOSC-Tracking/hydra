@@ -20,10 +20,10 @@ def main():
     parser.add_argument("--native-build", type=Path, default=REPOSITORY / "target/torrent-native-static")
     parser.add_argument("--system-engine", action="store_true", help="Link an installed libtorrent; the resulting package requires its shared libraries")
     parser.add_argument("--skip-native-build", action="store_true", help="Package an existing native build, including builds made in a compatibility container")
-    parser.add_argument("--platform", choices=[f"{system}-{arch}" for system in ("macos", "linux", "windows") for arch in ("aarch64", "x86_64")], help="Target of an existing cross-compiled native build")
+    parser.add_argument("--platform", choices=[f"{system}-{arch}" for system in ("macos", "windows") for arch in ("aarch64", "x86_64")] + [f"linux-{arch}" for arch in ("x86_64", "aarch64", "mips64el", "loongarch64", "powerpc64le", "riscv64")], help="Target of an existing cross-compiled native build")
     args = parser.parse_args()
     system = {"Darwin": "macos", "Linux": "linux", "Windows": "windows"}[platform.system()]
-    architecture = {"arm64": "aarch64", "ARM64": "aarch64", "aarch64": "aarch64", "AMD64": "x86_64", "x86_64": "x86_64"}[platform.machine()]
+    architecture = {"arm64": "aarch64", "ARM64": "aarch64", "aarch64": "aarch64", "AMD64": "x86_64", "x86_64": "x86_64", "mips64el": "mips64el", "loongarch64": "loongarch64", "ppc64le": "powerpc64le", "powerpc64le": "powerpc64le", "riscv64": "riscv64"}[platform.machine()]
     key = f"{system}-{architecture}"
     if args.platform and args.platform != key:
         if not args.skip_native_build:

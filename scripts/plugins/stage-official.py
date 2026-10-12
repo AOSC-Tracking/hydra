@@ -30,8 +30,10 @@ def stage(root, version):
             for entry in archive.infolist():
                 name = entry.orig_filename
                 parts = pathlib.PurePosixPath(name).parts
-                platforms = {f"{system}-{architecture}" for system in ["linux", "macos", "windows"]
+                platforms = {f"{system}-{architecture}" for system in ["macos", "windows"]
                              for architecture in ["x86_64", "aarch64"]}
+                platforms |= {f"linux-{architecture}" for architecture in
+                              ["x86_64", "aarch64", "mips64el", "loongarch64", "powerpc64le", "riscv64"]}
                 valid_path = (len(parts) == 1 or
                               len(parts) == 3 and parts[0] == "native" and parts[1] in platforms)
                 if (not valid_path or name != entry.filename

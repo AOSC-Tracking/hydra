@@ -37,6 +37,26 @@ module = "torrent-linux-aarch64.so"
 
 [[native_modules]]
 id = "torrent-engine"
+platform = "linux-mips64el"
+module = "torrent-linux-mips64el.so"
+
+[[native_modules]]
+id = "torrent-engine"
+platform = "linux-loongarch64"
+module = "torrent-linux-loongarch64.so"
+
+[[native_modules]]
+id = "torrent-engine"
+platform = "linux-powerpc64le"
+module = "torrent-linux-powerpc64le.so"
+
+[[native_modules]]
+id = "torrent-engine"
+platform = "linux-riscv64"
+module = "torrent-linux-riscv64.so"
+
+[[native_modules]]
+id = "torrent-engine"
 platform = "windows-x86_64"
 module = "torrent-windows-x86_64.dll"
 
