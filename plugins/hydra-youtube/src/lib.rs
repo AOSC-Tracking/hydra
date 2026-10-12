@@ -117,17 +117,6 @@ fn extraction_error(host: &Host, error: PluginError, playlist: bool) -> PluginEr
     )
 }
 
-const BACKEND_VERSION: &str = "2026.08.19";
-fn backend_asset(os: &str, arch: &str) -> Option<&'static str> {
-    match (os, arch) {
-        ("macos", "aarch64" | "x86_64") => Some("yt-dlp_macos"),
-        ("windows", "x86_64") => Some("yt-dlp.exe"),
-        ("windows", "aarch64") => Some("yt-dlp_arm64.exe"),
-        ("linux", "x86_64") => Some("yt-dlp_linux"),
-        ("linux", "aarch64") => Some("yt-dlp_linux_aarch64"),
-        _ => None,
-    }
-}
 fn ensure_backend(host: &Host) -> hya_plugin_sdk::Result<()> {
     let args = [
         "--ignore-config".into(),
@@ -135,74 +124,10 @@ fn ensure_backend(host: &Host) -> hya_plugin_sdk::Result<()> {
         "--version".into(),
     ];
     match host.exec("yt-dlp", &args) {
-        Ok(output) if output.status == 0 => return Ok(()),
-        Ok(output) => return Err(PluginError::new(ErrorCode::ToolFailed, output.stderr)),
-        Err(error) if error.code != ErrorCode::ToolMissing => return Err(error),
-        Err(error) => {
-            if !host
-                .settings()?
-                .get("download_backend")
-                .and_then(hya_plugin_sdk::Value::as_bool)
-                .unwrap_or(false)
-            {
-                return Err(error);
-            }
-        }
+        Ok(output) if output.status == 0 => Ok(()),
+        Ok(output) => Err(PluginError::new(ErrorCode::ToolFailed, output.stderr)),
+        Err(error) => Err(error),
     }
-    let platform: Value = host.call("platform", &serde_json::json!({}))?;
-    let asset = backend_asset(
-        platform["os"].as_str().unwrap_or(""),
-        platform["arch"].as_str().unwrap_or(""),
-    )
-    .ok_or_else(|| {
-        PluginError::new(
-            ErrorCode::Unsupported,
-            "install yt-dlp manually for this platform",
-        )
-    })?;
-    let base = format!("https://github.com/yt-dlp/yt-dlp/releases/download/{BACKEND_VERSION}");
-    let response: Value = host.call(
-        "http",
-        &serde_json::json!({"url":format!("{base}/SHA2-256SUMS")}),
-    )?;
-    if response["status"] != 200 {
-        return Err(PluginError::new(
-            ErrorCode::Network,
-            "could not fetch backend checksums",
-        ));
-    }
-    let bytes = base64::engine::general_purpose::STANDARD
-        .decode(response["body_b64"].as_str().unwrap_or(""))
-        .map_err(|e| PluginError::new(ErrorCode::InvalidReply, e.to_string()))?;
-    let sums = String::from_utf8(bytes)
-        .map_err(|e| PluginError::new(ErrorCode::InvalidReply, e.to_string()))?;
-    let digest = sums
-        .lines()
-        .find_map(|line| {
-            let mut parts = line.split_whitespace();
-            let digest = parts.next()?;
-            let name = parts.next()?.trim_start_matches('*');
-            (name == asset).then_some(digest)
-        })
-        .ok_or_else(|| {
-            PluginError::new(
-                ErrorCode::InvalidReply,
-                "release has no checksum for this platform",
-            )
-        })?;
-    host.log(
-        "info",
-        &format!("Installing yt-dlp {BACKEND_VERSION} for {}", platform["os"]),
-    )?;
-    let _: Value = host.call(
-        "program_install",
-        &serde_json::json!({"program":"yt-dlp","url":format!("{base}/{asset}"),"sha256":digest}),
-    )?;
-    let result = host.exec("yt-dlp", &args)?;
-    if result.status != 0 {
-        return Err(PluginError::new(ErrorCode::ToolFailed, result.stderr));
-    }
-    Ok(())
 }
 
 fn text<'a>(v: &'a Value, key: &str) -> Option<&'a str> {
@@ -501,26 +426,5 @@ mod tests {
         ] {
             assert!(plan(&v).is_err());
         }
-    }
-}
-
-#[cfg(test)]
-mod platform_tests {
-    use super::*;
-    #[test]
-    fn native_backend_assets_cover_supported_desktops() {
-        assert_eq!(backend_asset("macos", "aarch64"), Some("yt-dlp_macos"));
-        assert_eq!(backend_asset("macos", "x86_64"), Some("yt-dlp_macos"));
-        assert_eq!(backend_asset("windows", "x86_64"), Some("yt-dlp.exe"));
-        assert_eq!(
-            backend_asset("windows", "aarch64"),
-            Some("yt-dlp_arm64.exe")
-        );
-        assert_eq!(backend_asset("linux", "x86_64"), Some("yt-dlp_linux"));
-        assert_eq!(
-            backend_asset("linux", "aarch64"),
-            Some("yt-dlp_linux_aarch64")
-        );
-        assert_eq!(backend_asset("unknown", "unknown"), None);
     }
 }
