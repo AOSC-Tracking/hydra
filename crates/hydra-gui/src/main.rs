@@ -403,16 +403,6 @@ fn boot_with_launch(login_launch: bool) -> (App, Task<Message>) {
     // apps get no menu bar, and on macOS every Hydra menu lives there.
     #[cfg(target_os = "macos")]
     macos_dock::sync(app.cfg.settings.hide_from_taskbar, !start_hidden);
-    // Startup update check (Options > General), tray launch or not: a
-    // machine that boots Hydra into the tray every day is exactly the one
-    // that never sees a manual check. A dialog only ever opens on a positive
-    // answer; failures are silent — offline is normal.
-    let check = if app.cfg.settings.check_updates_on_startup {
-        let beta = app.cfg.settings.beta_channel;
-        Task::perform(update::check(beta), Message::UpdateChecked)
-    } else {
-        Task::none()
-    };
     let install = plugin_file_arg(std::env::args_os())
         .ok()
         .flatten()
@@ -426,13 +416,13 @@ fn boot_with_launch(login_launch: bool) -> (App, Task<Message>) {
         .unwrap_or_else(Task::none);
     let install = Task::batch([install, install_link]);
     if start_hidden {
-        (app, Task::batch([check, install, plugins::load()]))
+        (app, Task::batch([install, plugins::load()]))
     } else {
         let open_main = app.open_window(WinKind::Main);
         let perm = app.check_folder_access();
         (
             app,
-            Task::batch([open_main, perm, check, install, plugins::load()]),
+            Task::batch([open_main, perm, install, plugins::load()]),
         )
     }
 }

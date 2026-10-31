@@ -266,7 +266,6 @@ pub fn entries(kind: MenuBarKind, app: &App) -> Vec<Entry> {
             Entry::item(tr("Permissions"), MenuAction::Permissions),
             Entry::item(tr("Logs"), MenuAction::Logs),
             Entry::item(tr("Report an Issue"), MenuAction::ReportIssue),
-            Entry::item(tr("Check for updates"), MenuAction::CheckUpdates).sep(),
             Entry::item(tr("About Hydra"), MenuAction::About).sep(),
         ],
     }

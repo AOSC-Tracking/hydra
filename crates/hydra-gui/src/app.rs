@@ -1573,8 +1573,6 @@ pub enum Message {
 #[derive(Clone, Debug)]
 pub enum OptField {
     LaunchStartup(bool),
-    CheckUpdates(bool),
-    BetaChannel(bool),
     StartInTray(bool),
     CloseToTray(bool),
     /// Only where the Dock/taskbar checkbox exists (macOS, Windows, Linux).

@@ -161,14 +161,6 @@ fn general(app: &App) -> El<'_> {
     }
     col.extend([
         hinted(
-            check(s.check_updates_on_startup, tr("Check for updates on startup")).on_toggle(|b| o(OptField::CheckUpdates(b))),
-            tr("Asks the release server for a newer Hydra when the app starts. Only the check is automatic; installing always waits for your confirmation."),
-        ),
-        hinted(
-            check(s.beta_channel, tr("Download Beta channel")).on_toggle(|b| o(OptField::BetaChannel(b))),
-            tr("Update checks also offer release candidates (-rc tags) when one is ahead of the stable release; otherwise the stable release is used. Beta builds may be less stable."),
-        ),
-        hinted(
             check(s.power_save, tr("Power save mode")).on_toggle(|b| o(OptField::PowerSave(b))),
             tr("Fewer wakeups: slower interface refresh, no progress animation, coarser transfer ticks. Download speed is unchanged."),
         ),
@@ -608,8 +600,6 @@ impl OptionsState {
         let s = &mut self.draft;
         match f {
             OptField::LaunchStartup(b) => s.launch_on_startup = b,
-            OptField::CheckUpdates(b) => s.check_updates_on_startup = b,
-            OptField::BetaChannel(b) => s.beta_channel = b,
             OptField::StartInTray(b) => s.start_in_tray = b,
             OptField::CloseToTray(b) => s.close_to_tray = b,
             #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
@@ -1930,8 +1920,7 @@ mod tests {
             };
         }
         toggle!(
-            LaunchStartup => launch_on_startup, CheckUpdates => check_updates_on_startup,
-            BetaChannel => beta_channel, StartInTray => start_in_tray, CloseToTray => close_to_tray,
+            LaunchStartup => launch_on_startup, StartInTray => start_in_tray, CloseToTray => close_to_tray,
             PowerSave => power_save, GpuRender => gpu_render, Clipboard => monitor_clipboard,
             PortableCapture => portable_capture, RememberLast => remember_last_dir,
             CapturePluginUrls => capture_plugin_urls,

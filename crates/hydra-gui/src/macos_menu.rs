@@ -274,7 +274,6 @@ pub fn reinstall(
         &item("Permissions", MenuAction::Permissions),
         &item("Logs", MenuAction::Logs),
         &item("Report an Issue", MenuAction::ReportIssue),
-        &item("Check for updates", MenuAction::CheckUpdates),
         &item("About Hydra", MenuAction::About),
     ]);
     let _ = menu.append(&help);
